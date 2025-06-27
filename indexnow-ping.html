@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IndexNow Pinger Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+      background: #f9f9f9;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 10px;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 20px;
+      font-weight: bold;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #eef;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📢 Manual IndexNow Pinger</h2>
+  <p>Paste your Blogger post URLs below (one per line), then click <b>"Ping URLs"</b>.</p>
+  <textarea id="urls" placeholder="https://www.example.com/post1.html
+https://www.example.com/post2.html"></textarea>
+  <button onclick="pingUrls()">Ping URLs</button>
+  <div id="output"></div>
+
+  <script>
+    async function pingUrls() {
+      const urlBox = document.getElementById('urls');
+      const output = document.getElementById('output');
+      const urls = urlBox.value.trim().split('\n').filter(Boolean);
+      output.innerText = 'Pinging...\n';
+
+      for (const url of urls) {
+        try {
+          const res = await fetch('https://indexnow-pinger.onrender.com/ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            output.innerText += `✅ Pinged: ${data.pinged}\n`;
+          } else {
+            output.innerText += `❌ Failed: ${url} - ${data.error || res.status}\n`;
+          }
+        } catch (err) {
+          output.innerText += `❌ Error: ${url} - ${err.message}\n`;
+        }
+      }
+    }
+  </script>
+</body>
+  </html>
