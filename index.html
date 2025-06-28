@@ -3,81 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📢 IndexNow Manual Pinger Tool</title>
+  <meta name="description" content="Manually ping multiple URLs to Bing via IndexNow protocol. Boost your SEO instantly with this fast, smart tool.">
+  <meta name="keywords" content="IndexNow, Bing, SEO, URL submit, ping, index, blog optimization">
+  <meta name="author" content="Ogunlana Akinola Okikiola">
+  <title>🚀 IndexNow Pro Pinger</title>
   <style>
+    :root {
+      --primary: #007bff;
+      --bg: #f0f2f5;
+      --text: #222;
+      --card: #fff;
+      --success: green;
+      --error: red;
+    }
+
+    body.dark {
+      --bg: #1d1f23;
+      --text: #f5f5f5;
+      --card: #2b2d31;
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
-      padding: 30px;
-      margin: 0 auto;
-      max-width: 800px;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      max-width: 850px;
+      margin: auto;
+      transition: background 0.3s, color 0.3s;
     }
 
     h1 {
-      color: #333;
       text-align: center;
+      margin-bottom: 10px;
     }
 
     textarea {
       width: 100%;
-      height: 250px;
+      height: 220px;
       padding: 15px;
-      font-size: 14px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      resize: vertical;
+      font-size: 14px;
       box-sizing: border-box;
+      resize: vertical;
+      background: var(--card);
+      color: var(--text);
     }
 
     button {
-      padding: 12px 24px;
-      margin-top: 15px;
-      background-color: #007bff;
+      padding: 12px 20px;
+      background: var(--primary);
       color: white;
-      font-weight: bold;
       border: none;
       border-radius: 6px;
+      font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease;
+      margin-top: 15px;
     }
 
     button:hover {
-      background-color: #0056b3;
+      background: #0056b3;
     }
 
-    #status {
+    .stats, #status, .download-log {
       margin-top: 15px;
+      font-size: 15px;
       font-weight: bold;
     }
 
     #output {
-      background-color: #ffffff;
-      border-left: 5px solid #007bff;
-      padding: 15px;
       margin-top: 20px;
+      padding: 15px;
+      border-left: 5px solid var(--primary);
+      border-radius: 6px;
+      background: var(--card);
       white-space: pre-wrap;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-      max-height: 400px;
       overflow-y: auto;
+      max-height: 400px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
 
-    .success { color: green; }
-    .error { color: red; }
+    .success { color: var(--success); }
+    .error { color: var(--error); }
+
+    .toggle-theme {
+      float: right;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: -30px;
+      color: var(--primary);
+      text-decoration: underline;
+    }
 
     .download-log {
-      margin-top: 10px;
-      display: inline-block;
-      color: #007bff;
-      text-decoration: underline;
       cursor: pointer;
+      color: var(--primary);
+      text-decoration: underline;
     }
 
-    @media (max-width: 600px) {
-      textarea {
-        height: 180px;
-      }
-
+    @media(max-width: 600px) {
       button {
         width: 100%;
       }
@@ -85,75 +111,97 @@
   </style>
 </head>
 <body>
+  <h1>📢 IndexNow Pro Pinger Tool</h1>
+  <div class="toggle-theme" onclick="toggleTheme()">🌓 Toggle Dark Mode</div>
 
-  <h1>📢 Manual IndexNow Pinger Tool</h1>
-  <p>Paste your published blog URLs below (one per line). Click <strong>"Ping URLs"</strong> to notify Bing via IndexNow.</p>
+  <p>Paste your blog post URLs below (one per line). Maximize SEO by pinging Bing with IndexNow.</p>
 
-  <textarea id="urls" placeholder="https://www.example.com/post1.html&#10;https://www.example.com/post2.html"></textarea>
+  <textarea id="urls" placeholder="https://www.example.com/post1.html"></textarea>
+  <div class="stats" id="count">0 URLs entered</div>
 
   <button onclick="pingUrls()">🚀 Ping URLs</button>
   <div id="status"></div>
   <div id="output"></div>
-  <div class="download-log" onclick="downloadLog()">⬇️ Download Log</div>
+  <div class="download-log" onclick="downloadLog()">⬇️ Download Ping Log</div>
 
   <script>
     let logs = [];
+
+    const urlBox = document.getElementById("urls");
+    const countDisplay = document.getElementById("count");
+
+    urlBox.addEventListener("input", () => {
+      const lines = [...new Set(urlBox.value.trim().split("\n").filter(l => l.trim() !== ""))];
+      countDisplay.textContent = `${lines.length} URL${lines.length !== 1 ? 's' : ''} entered`;
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+    }
 
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     async function pingUrls() {
-      const urlInput = document.getElementById("urls");
       const output = document.getElementById("output");
       const status = document.getElementById("status");
-      const urls = urlInput.value.trim().split("\n").filter(Boolean);
+      let urls = urlBox.value.trim().split("\n").map(u => u.trim()).filter(Boolean);
+      urls = [...new Set(urls)];
       logs = [];
 
       if (urls.length === 0) {
-        alert("Please enter at least one URL.");
+        alert("Please enter at least one valid URL.");
         return;
       }
 
-      output.innerText = "";
-      status.innerText = `🔄 Pinging ${urls.length} URL(s)... Please wait.`;
+      output.innerHTML = "";
+      status.textContent = `🔄 Starting ping... (0/${urls.length})`;
+
+      let successCount = 0;
+      let failureCount = 0;
 
       for (let i = 0; i < urls.length; i++) {
         const url = urls[i];
+        const timestamp = new Date().toLocaleString();
+
         try {
           const res = await fetch("https://indexnow-pinger-1.onrender.com/ping", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url })
           });
 
           const data = await res.json();
+
           if (res.ok && data.success) {
-            const msg = `✅ Pinged: ${data.pinged}`;
+            const msg = `✅ [${timestamp}] Pinged: ${data.pinged}`;
             output.innerHTML += `<div class="success">${msg}</div>`;
             logs.push(msg);
+            successCount++;
           } else {
-            const err = `❌ Failed: ${url} - ${data.error || res.status}`;
+            const err = `❌ [${timestamp}] Failed: ${url} - ${data.error || res.status}`;
             output.innerHTML += `<div class="error">${err}</div>`;
             logs.push(err);
+            failureCount++;
           }
         } catch (err) {
-          const fail = `❌ Error: ${url} - ${err.message}`;
-          output.innerHTML += `<div class="error">${fail}</div>`;
-          logs.push(fail);
+          const error = `❌ [${timestamp}] Error: ${url} - ${err.message}`;
+          output.innerHTML += `<div class="error">${error}</div>`;
+          logs.push(error);
+          failureCount++;
         }
 
-        await sleep(1500); // Delay between each ping
+        status.textContent = `⏳ Progress: ${i + 1}/${urls.length} | ✅ ${successCount} | ❌ ${failureCount}`;
+        await sleep(1000);
       }
 
-      status.innerText = "✅ Finished pinging all URLs.";
+      status.textContent = `✅ Completed: ${successCount} Success / ${failureCount} Failed.`;
     }
 
     function downloadLog() {
       if (logs.length === 0) {
-        alert("No logs available to download.");
+        alert("No log to download.");
         return;
       }
 
@@ -161,11 +209,10 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "ping-log.txt";
+      link.download = `indexnow-ping-log-${Date.now()}.txt`;
       link.click();
       URL.revokeObjectURL(url);
     }
   </script>
-
 </body>
 </html>
